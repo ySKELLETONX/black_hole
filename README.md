@@ -1,5 +1,10 @@
 # **black**_**hole** — enhanced renderer fork
 
+🇧🇷 [Leia em Português](README.pt-BR.md)
+
+![Black hole rendered by BlackHole3D_GPU at 2560x1440](docs/screenshot_2k.png)
+<sub>BlackHole3D_GPU, 2560x1440 render.</sub>
+
 Fork of [kavan010/black_hole](https://github.com/kavan010/black_hole) by **SKELLETONX**, with a rewritten GPU renderer for the 3D simulation (`black_hole.cpp` + `geodesic.comp`).
 
 ### What's new
@@ -30,12 +35,15 @@ It downloads GLFW, GLEW, GLM, Dear ImGui and stb into `deps/` on first run and p
 | G / right mouse | Toggle / hold N-body gravity |
 | Esc | Quit |
 
-Command line (renders one frame and exits): `BlackHole3D_GPU.exe --screenshot out.png --az 30 --elev 10 --dist 20`
+Command line (renders one frame offscreen and exits; the size is not limited by your monitor):
+
+```
+BlackHole3D_GPU.exe --screenshot out.png --width 2560 --height 1440 --az 30 --elev 10 --dist 20
+```
 
 ---
 
 ## Original README
-
 
 Black hole simulation project
 

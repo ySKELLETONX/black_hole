@@ -167,6 +167,9 @@ struct Engine {
 
     int WIDTH = 1280;
     int HEIGHT = 720;
+    // Offscreen output (used by --screenshot so the size is not limited by the monitor)
+    GLuint outFBO = 0, outTex = 0;
+    int outW = 0, outH = 0;
 
     Engine() {
         if (!glfwInit()) {
@@ -400,13 +403,26 @@ struct Engine {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
+    void outputSize(int& w, int& h) {
+        if (outFBO) { w = outW; h = outH; }
+        else glfwGetFramebufferSize(window, &w, &h);
+    }
+    void createOffscreen(int w, int h) {
+        outW = w; outH = h;
+        glGenTextures(1, &outTex);
+        glBindTexture(GL_TEXTURE_2D, outTex);
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
+        glGenFramebuffers(1, &outFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, outFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outTex, 0);
+    }
     void setUniform(GLuint prog, const char* name, float v) { glUniform1f(glGetUniformLocation(prog, name), v); }
     void setUniform(GLuint prog, const char* name, int v)   { glUniform1i(glGetUniformLocation(prog, name), v); }
     void setUniform(GLuint prog, const char* name, vec3 v)  { glUniform3fv(glGetUniformLocation(prog, name), 1, value_ptr(v)); }
 
     void dispatchCompute(const Camera& cam, float time) {
         int fbW, fbH;
-        glfwGetFramebufferSize(window, &fbW, &fbH);
+        outputSize(fbW, fbH);
         int w = std::max(16, int(fbW * S.renderScale));
         int h = std::max(16, int(fbH * S.renderScale));
         ensureTarget(w, h);
@@ -473,7 +489,7 @@ struct Engine {
     }
     void drawPost(float time) {
         int fbW, fbH;
-        glfwGetFramebufferSize(window, &fbW, &fbH);
+        outputSize(fbW, fbH);
         glViewport(0, 0, fbW, fbH);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
@@ -519,10 +535,10 @@ struct Engine {
     }
     void saveScreenshot(const string& path) {
         int fbW, fbH;
-        glfwGetFramebufferSize(window, &fbW, &fbH);
+        outputSize(fbW, fbH);
         vector<unsigned char> pixels(size_t(fbW) * fbH * 3);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadBuffer(GL_BACK);
+        glReadBuffer(outFBO ? GL_COLOR_ATTACHMENT0 : GL_BACK);
         glReadPixels(0, 0, fbW, fbH, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
         stbi_flip_vertically_on_write(1);
         if (stbi_write_png(path.c_str(), fbW, fbH, 3, pixels.data(), fbW * 3))
@@ -643,7 +659,8 @@ int main(int argc, char** argv) {
     }
     if (!autoShot.empty()) {
         S.showUI = false;
-        glfwSetWindowSize(engine.window, engine.WIDTH, engine.HEIGHT);
+        glfwHideWindow(engine.window);
+        engine.createOffscreen(engine.WIDTH, engine.HEIGHT);
     }
 
     setupCameraCallbacks(engine.window);
@@ -706,7 +723,7 @@ int main(int argc, char** argv) {
         // ---------- GRID (optional overlay) ------------- //
         if (S.showGrid) {
             int fbW, fbH;
-            glfwGetFramebufferSize(engine.window, &fbW, &fbH);
+            engine.outputSize(fbW, fbH);
             engine.generateGrid(objects);
             mat4 view = lookAt(camera.position(), camera.target, vec3(0, 1, 0));
             mat4 proj = perspective(radians(S.fov), float(fbW) / float(std::max(fbH, 1)), 1e9f, 1e14f);
