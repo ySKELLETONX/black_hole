@@ -28,12 +28,16 @@ if not exist deps\stb\stb_image_write.h (
   mkdir deps\stb 2>nul
   curl -sSL -o deps\stb\stb_image_write.h https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 )
+if not exist deps\miniaudio\miniaudio.h (
+  mkdir deps\miniaudio 2>nul
+  curl -sSL -o deps\miniaudio\miniaudio.h https://raw.githubusercontent.com/mackron/miniaudio/0.11.22/miniaudio.h
+)
 if not exist build_gpu mkdir build_gpu
 set IMGUI=deps\imgui
 cl /nologo /EHsc /O2 /MD /std:c++17 /utf-8 /DGLEW_STATIC /MP ^
   /I deps\glfw-3.4.bin.WIN64\include /I deps\glew-2.2.0\include /I deps\glm ^
-  /I %IMGUI% /I %IMGUI%\backends /I deps\stb ^
-  black_hole.cpp %IMGUI%\imgui.cpp %IMGUI%\imgui_draw.cpp %IMGUI%\imgui_tables.cpp %IMGUI%\imgui_widgets.cpp ^
+  /I %IMGUI% /I %IMGUI%\backends /I deps\stb /I deps\miniaudio ^
+  black_hole.cpp miniaudio_impl.cpp %IMGUI%\imgui.cpp %IMGUI%\imgui_draw.cpp %IMGUI%\imgui_tables.cpp %IMGUI%\imgui_widgets.cpp ^
   %IMGUI%\backends\imgui_impl_glfw.cpp %IMGUI%\backends\imgui_impl_opengl3.cpp ^
   /Fobuild_gpu\ /Febuild_gpu\BlackHole3D_GPU.exe ^
   /link /NODEFAULTLIB:LIBCMT /LIBPATH:deps\glfw-3.4.bin.WIN64\lib-vc2022 /LIBPATH:deps\glew-2.2.0\lib\Release\x64 ^
@@ -42,5 +46,6 @@ if errorlevel 1 exit /b 1
 copy /y *.comp build_gpu\ >nul
 copy /y *.vert build_gpu\ >nul
 copy /y *.frag build_gpu\ >nul
+for %%f in (music.mp3 music.wav music.flac) do if exist %%f copy /y %%f build_gpu\ >nul
 del /q build_gpu\*.obj build_gpu\*.lib build_gpu\*.exp 2>nul
 echo BUILD OK

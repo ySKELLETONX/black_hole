@@ -8,6 +8,7 @@
 #include <imgui_impl_opengl3.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include <miniaudio.h>
 #include <vector>
 #include <iostream>
 #define _USE_MATH_DEFINES
@@ -74,6 +75,9 @@ struct Settings {
     float bloom       = 0.12f;
     float vignette    = 0.35f;
     bool  showGrid    = false;
+    // music
+    float musicVolume = 0.5f;
+    bool  musicMuted  = false;
     bool  showUI      = true;
     bool  paused      = false;
 };
@@ -551,6 +555,41 @@ Engine engine;
 
 bool screenshotRequested = false;
 
+// -- Background music: plays music.mp3 / .wav / .flac from the working directory in a loop -- //
+struct Music {
+    ma_engine engine;
+    ma_sound  sound;
+    bool engineOk = false, soundOk = false;
+
+    void start() {
+        if (ma_engine_init(nullptr, &engine) != MA_SUCCESS) {
+            cerr << "[WARN] Audio device unavailable, music disabled" << endl;
+            return;
+        }
+        engineOk = true;
+        for (const char* file : { "music.mp3", "music.wav", "music.flac" }) {
+            if (ma_sound_init_from_file(&engine, file, MA_SOUND_FLAG_STREAM, nullptr, nullptr, &sound) == MA_SUCCESS) {
+                soundOk = true;
+                ma_sound_set_looping(&sound, MA_TRUE);
+                ma_sound_set_fade_in_milliseconds(&sound, 0.0f, 1.0f, 3000);
+                applyVolume();
+                ma_sound_start(&sound);
+                cout << "[INFO] Playing " << file << " (loop)" << endl;
+                return;
+            }
+        }
+        cout << "[INFO] No music.mp3 / music.wav / music.flac found, running without music" << endl;
+    }
+    void applyVolume() {
+        if (soundOk) ma_engine_set_volume(&engine, S.musicMuted ? 0.0f : S.musicVolume);
+    }
+    void stop() {
+        if (soundOk) ma_sound_uninit(&sound);
+        if (engineOk) ma_engine_uninit(&engine);
+    }
+};
+Music music;
+
 void setupCameraCallbacks(GLFWwindow* window) {
     glfwSetWindowUserPointer(window, &camera);
 
@@ -582,6 +621,7 @@ void setupCameraCallbacks(GLFWwindow* window) {
             case GLFW_KEY_H:     S.showUI = !S.showUI; break;
             case GLFW_KEY_SPACE: S.autoOrbit = !S.autoOrbit; break;
             case GLFW_KEY_P:     screenshotRequested = true; break;
+            case GLFW_KEY_M:     S.musicMuted = !S.musicMuted; music.applyVolume(); break;
             case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(win, 1); break;
         }
     });
@@ -594,7 +634,7 @@ void drawUI(float fps) {
     ImGui::Begin("Black Hole", &S.showUI);
     ImGui::Text("%.0f FPS  |  %d x %d", fps, engine.texW, engine.texH);
     ImGui::TextDisabled("Drag: orbit   Scroll: zoom   H: hide UI");
-    ImGui::TextDisabled("Space: auto orbit   P: screenshot");
+    ImGui::TextDisabled("Space: auto orbit   P: screenshot   M: mute");
 
     if (ImGui::CollapsingHeader("Accretion disk", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Enabled", &S.diskEnabled);
@@ -619,6 +659,11 @@ void drawUI(float fps) {
         ImGui::SliderFloat("Exposure", &S.exposure, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
         ImGui::SliderFloat("Bloom", &S.bloom, 0.0f, 0.5f);
         ImGui::SliderFloat("Vignette", &S.vignette, 0.0f, 1.0f);
+    }
+    if (music.soundOk && ImGui::CollapsingHeader("Music", ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool changed = ImGui::SliderFloat("Volume", &S.musicVolume, 0.0f, 1.0f, "%.2f");
+        changed |= ImGui::Checkbox("Mute", &S.musicMuted);
+        if (changed) music.applyVolume();
     }
     if (ImGui::CollapsingHeader("Quality")) {
         ImGui::SliderFloat("Render scale", &S.renderScale, 0.25f, 2.0f, "%.2fx");
@@ -664,6 +709,7 @@ int main(int argc, char** argv) {
     }
 
     setupCameraCallbacks(engine.window);
+    if (autoShot.empty()) music.start();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -750,6 +796,7 @@ int main(int argc, char** argv) {
         glfwSwapBuffers(engine.window);
     }
 
+    music.stop();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

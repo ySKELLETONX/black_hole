@@ -11,6 +11,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_image_write.h")
+find_path(MINIAUDIO_INCLUDE_DIRS "miniaudio.h")
 
 # Common dependencies
 set(DEPS glfw GLEW::GLEW glm::glm OpenGL::GL)
@@ -21,9 +22,9 @@ target_link_libraries(BlackHole2D PRIVATE ${DEPS})
 target_include_directories(BlackHole2D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 3D Black Hole executable
-add_executable(BlackHole3D black_hole.cpp)
+add_executable(BlackHole3D black_hole.cpp miniaudio_impl.cpp)
 target_link_libraries(BlackHole3D PRIVATE ${DEPS} imgui::imgui)
-target_include_directories(BlackHole3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${STB_INCLUDE_DIRS})
+target_include_directories(BlackHole3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${STB_INCLUDE_DIRS} ${MINIAUDIO_INCLUDE_DIRS})
 
 # Shader files (copy to output dir)
 file(GLOB SHADERS

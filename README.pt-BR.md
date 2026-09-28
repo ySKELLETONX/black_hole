@@ -32,8 +32,12 @@ Na primeira execução, o script baixa GLFW, GLEW, GLM, Dear ImGui e stb para `d
 | H | Mostrar / ocultar o painel |
 | Espaço | Ligar / desligar órbita automática |
 | P | Salvar screenshot (PNG) |
+| M | Silenciar / reativar a música |
 | G / botão direito | Ligar / segurar a gravidade entre os corpos |
 | Esc | Sair |
+
+### Música de fundo
+Coloque um arquivo chamado `music.mp3` (ou `music.wav` / `music.flac`) na pasta do projeto antes de rodar o `build_gpu.bat`, ou direto ao lado do `BlackHole3D_GPU.exe`. Ele toca em loop, com fade-in, quando o programa abre, e o painel tem controle de volume e botão de mudo. O repositório não inclui nenhuma música e os arquivos de música são ignorados pelo Git, então use uma faixa que você tenha direito de usar.
 
 Linha de comando (renderiza um único frame fora da tela e fecha):
 

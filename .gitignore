@@ -150,3 +150,11 @@ vcpkg_installed
 deps/
 build_gpu/
 blackhole_*.png
+
+# Local background music (copyrighted tracks are not redistributed)
+music.mp3
+music.wav
+music.flac
+
+# Local editor config
+.vscode/
