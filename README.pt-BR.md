@@ -33,6 +33,7 @@ Na primeira execução, o script baixa GLFW, GLEW, GLM, Dear ImGui e stb para `d
 | Espaço | Ligar / desligar órbita automática |
 | P | Salvar screenshot (PNG) |
 | M | Silenciar / reativar a música |
+| F11 / Alt+Enter | Tela cheia (também tem botão no painel; `--fullscreen` já abre assim) |
 | G / botão direito | Ligar / segurar a gravidade entre os corpos |
 | Esc | Sair |
 

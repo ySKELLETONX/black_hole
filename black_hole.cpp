@@ -555,6 +555,47 @@ Engine engine;
 
 bool screenshotRequested = false;
 
+// -- Fullscreen toggle (borderless on the monitor the window is on) -- //
+bool fullscreen = false;
+bool fullscreenRequested = false;
+int  windowedX = 100, windowedY = 100, windowedW = 1280, windowedH = 720;
+
+GLFWmonitor* monitorForWindow(GLFWwindow* win) {
+    int wx, wy, ww, wh;
+    glfwGetWindowPos(win, &wx, &wy);
+    glfwGetWindowSize(win, &ww, &wh);
+    int cx = wx + ww / 2, cy = wy + wh / 2;
+    int count;
+    GLFWmonitor** monitors = glfwGetMonitors(&count);
+    for (int i = 0; i < count; ++i) {
+        int mx, my;
+        glfwGetMonitorPos(monitors[i], &mx, &my);
+        const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+        if (cx >= mx && cx < mx + mode->width && cy >= my && cy < my + mode->height)
+            return monitors[i];
+    }
+    return glfwGetPrimaryMonitor();
+}
+
+void applyFullscreen(GLFWwindow* win) {
+    if (!fullscreenRequested) return;
+    fullscreenRequested = false;
+    if (!fullscreen) {
+        glfwGetWindowPos(win, &windowedX, &windowedY);
+        glfwGetWindowSize(win, &windowedW, &windowedH);
+        GLFWmonitor* mon = monitorForWindow(win);
+        const GLFWvidmode* mode = glfwGetVideoMode(mon);
+        glfwSetWindowMonitor(win, mon, 0, 0, mode->width, mode->height, mode->refreshRate);
+    } else {
+        glfwSetWindowMonitor(win, nullptr, windowedX, windowedY, windowedW, windowedH, 0);
+    }
+    fullscreen = !fullscreen;
+    glfwSwapInterval(1);
+    int fw, fh;
+    glfwGetFramebufferSize(win, &fw, &fh);
+    cout << "[INFO] " << (fullscreen ? "Fullscreen " : "Windowed ") << fw << "x" << fh << endl;
+}
+
 // -- Background music: plays music.mp3 / .wav / .flac in a loop -- //
 struct Music {
     ma_engine engine;
@@ -625,6 +666,8 @@ void setupCameraCallbacks(GLFWwindow* window) {
             case GLFW_KEY_SPACE: S.autoOrbit = !S.autoOrbit; break;
             case GLFW_KEY_P:     screenshotRequested = true; break;
             case GLFW_KEY_M:     S.musicMuted = !S.musicMuted; music.applyVolume(); break;
+            case GLFW_KEY_F11:   fullscreenRequested = true; break;
+            case GLFW_KEY_ENTER: if (mods & GLFW_MOD_ALT) fullscreenRequested = true; break;
             case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(win, 1); break;
         }
     });
@@ -638,6 +681,9 @@ void drawUI(float fps) {
     ImGui::Text("%.0f FPS  |  %d x %d", fps, engine.texW, engine.texH);
     ImGui::TextDisabled("Drag: orbit   Scroll: zoom   H: hide UI");
     ImGui::TextDisabled("Space: auto orbit   P: screenshot   M: mute");
+    ImGui::TextDisabled("F11 / Alt+Enter: fullscreen");
+    if (ImGui::Button(fullscreen ? "Exit fullscreen" : "Fullscreen", ImVec2(-FLT_MIN, 0)))
+        fullscreenRequested = true;
 
     if (ImGui::CollapsingHeader("Accretion disk", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("Enabled", &S.diskEnabled);
@@ -691,7 +737,7 @@ string timestampedName() {
 }
 
 // -- MAIN -- //
-// Optional args: --screenshot out.png [--az deg] [--elev deg-above-disk] [--dist rs] [--time s] [--width w --height h]
+// Optional args: --fullscreen | --screenshot out.png [--az deg] [--elev deg-above-disk] [--dist rs] [--time s] [--width w --height h]
 int main(int argc, char** argv) {
     string autoShot;
     float simTime = 0.0f;
@@ -705,6 +751,8 @@ int main(int argc, char** argv) {
         else if (a == "--width") engine.WIDTH = stoi(argv[++i]);
         else if (a == "--height") engine.HEIGHT = stoi(argv[++i]);
     }
+    for (int i = 1; i < argc; ++i)
+        if (string(argv[i]) == "--fullscreen") fullscreenRequested = true;
     if (!autoShot.empty()) {
         S.showUI = false;
         glfwHideWindow(engine.window);
@@ -797,6 +845,7 @@ int main(int argc, char** argv) {
         }
 
         glfwSwapBuffers(engine.window);
+        applyFullscreen(engine.window);
     }
 
     music.stop();

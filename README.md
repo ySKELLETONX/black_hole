@@ -33,6 +33,7 @@ It downloads GLFW, GLEW, GLM, Dear ImGui and stb into `deps/` on first run and p
 | Space | Toggle auto orbit |
 | P | Save screenshot (PNG) |
 | M | Mute / unmute music |
+| F11 / Alt+Enter | Toggle fullscreen (also a button in the UI; `--fullscreen` to start in it) |
 | G / right mouse | Toggle / hold N-body gravity |
 | Esc | Quit |
 
