@@ -37,7 +37,7 @@ It downloads GLFW, GLEW, GLM, Dear ImGui and stb into `deps/` on first run and p
 | Esc | Quit |
 
 ### Background music
-Put a file named `music.mp3` (or `music.wav` / `music.flac`) in the project folder before running `build_gpu.bat`, or directly next to `BlackHole3D_GPU.exe`. It plays in a loop with a fade-in when the app opens, and the UI has volume and mute controls. No music ships with the repo, and music files are git-ignored, so use a track you have the rights to.
+Put a file named `music.mp3` (or `music.wav` / `music.flac`) in `docs/` (or next to `BlackHole3D_GPU.exe`). It plays in a loop with a fade-in when the app opens, and the UI has volume and mute controls. No music ships with the repo, and music files are git-ignored, so use a track you have the rights to.
 
 Command line (renders one frame offscreen and exits; the size is not limited by your monitor):
 

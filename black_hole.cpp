@@ -555,7 +555,7 @@ Engine engine;
 
 bool screenshotRequested = false;
 
-// -- Background music: plays music.mp3 / .wav / .flac from the working directory in a loop -- //
+// -- Background music: plays music.mp3 / .wav / .flac in a loop -- //
 struct Music {
     ma_engine engine;
     ma_sound  sound;
@@ -567,7 +567,10 @@ struct Music {
             return;
         }
         engineOk = true;
-        for (const char* file : { "music.mp3", "music.wav", "music.flac" }) {
+        // next to the exe, or in the project's docs/ folder (when run from build_gpu/ or the root)
+        for (const char* file : { "music.mp3", "music.wav", "music.flac",
+                                  "../docs/music.mp3", "../docs/music.wav", "../docs/music.flac",
+                                  "docs/music.mp3", "docs/music.wav", "docs/music.flac" }) {
             if (ma_sound_init_from_file(&engine, file, MA_SOUND_FLAG_STREAM, nullptr, nullptr, &sound) == MA_SUCCESS) {
                 soundOk = true;
                 ma_sound_set_looping(&sound, MA_TRUE);
