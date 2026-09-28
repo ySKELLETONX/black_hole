@@ -145,3 +145,8 @@ _deps
 
 # Vcpkg
 vcpkg_installed
+
+##### Local build (build_gpu.bat)
+deps/
+build_gpu/
+blackhole_*.png

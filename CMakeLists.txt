@@ -9,6 +9,8 @@ find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+find_path(STB_INCLUDE_DIRS "stb_image_write.h")
 
 # Common dependencies
 set(DEPS glfw GLEW::GLEW glm::glm OpenGL::GL)
@@ -20,8 +22,8 @@ target_include_directories(BlackHole2D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 3D Black Hole executable
 add_executable(BlackHole3D black_hole.cpp)
-target_link_libraries(BlackHole3D PRIVATE ${DEPS})
-target_include_directories(BlackHole3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(BlackHole3D PRIVATE ${DEPS} imgui::imgui)
+target_include_directories(BlackHole3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${STB_INCLUDE_DIRS})
 
 # Shader files (copy to output dir)
 file(GLOB SHADERS

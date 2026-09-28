@@ -1,4 +1,41 @@
-# **black**_**hole**
+# **black**_**hole** — enhanced renderer fork
+
+Fork of [kavan010/black_hole](https://github.com/kavan010/black_hole) by **SKELLETONX**, with a rewritten GPU renderer for the 3D simulation (`black_hole.cpp` + `geodesic.comp`).
+
+### What's new
+- **Full-resolution real-time ray tracing** — photon geodesics in Schwarzschild spacetime integrated with adaptive RK4 (was 200x150).
+- **Physically based accretion disk** — blackbody color from a Novikov–Thorne temperature profile, relativistic Doppler beaming, gravitational redshift and animated turbulent gas with Keplerian differential rotation.
+- **Gravitationally lensed sky** — procedural starfield, Milky Way band and nebulae.
+- **HDR pipeline** — bloom from the mip chain, ACES filmic tone mapping, vignette.
+- **Live control panel** ([Dear ImGui](https://github.com/ocornut/imgui)) for disk, sky, camera, post-processing and quality settings.
+- Smooth orbit camera, auto orbit, PNG screenshots.
+
+### Quick build (Windows, no vcpkg needed)
+Requires Visual Studio 2022+ or Build Tools with the C++ workload. Run:
+
+```
+build_gpu.bat
+```
+
+It downloads GLFW, GLEW, GLM, Dear ImGui and stb into `deps/` on first run and produces `build_gpu\BlackHole3D_GPU.exe` (run it from inside `build_gpu`, next to the shader files).
+
+### Controls
+| Input | Action |
+|---|---|
+| Left drag | Orbit camera |
+| Scroll | Zoom |
+| H | Show / hide UI |
+| Space | Toggle auto orbit |
+| P | Save screenshot (PNG) |
+| G / right mouse | Toggle / hold N-body gravity |
+| Esc | Quit |
+
+Command line (renders one frame and exits): `BlackHole3D_GPU.exe --screenshot out.png --az 30 --elev 10 --dist 20`
+
+---
+
+## Original README
+
 
 Black hole simulation project
 
